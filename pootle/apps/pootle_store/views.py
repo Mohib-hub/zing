@@ -50,6 +50,8 @@ from .unit.results import CtxRowResults, ViewRowResults
 from .unit.search import DBSearchBackend
 from .unit.timeline import Timeline
 from .util import find_altsrcs
+from django.db import connection
+import datetime
 
 
 # The amount of TM results that will be provided
@@ -598,6 +600,11 @@ def submit(request, unit):
             for field, old_value, new_value in form.updated_fields:
                 if field == SubmissionFields.TARGET and suggestion:
                     old_value = str(suggestion.target_f)
+
+                if current_time.microsecond > 0:
+                    current_time = current_time + datetime.timedelta(seconds=1)
+                    current_time = current_time.replace(microsecond=0)
+
                 sub = Submission(
                     creation_time=current_time,
                     translation_project=translation_project,
@@ -611,7 +618,27 @@ def submit(request, unit):
                     similarity=form.cleaned_data["similarity"],
                     mt_similarity=form.cleaned_data["mt_similarity"],
                 )
-                sub.save()
+
+                cursor = connection.cursor()
+                try:
+                    result = cursor.callproc('insert_unique_submission', [
+                        current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        field,
+                        request.user.id,
+                        SubmissionTypes.NORMAL,
+                        unit.id,
+                        unit.store.id,
+                        translation_project.id,
+                        old_value,
+                        new_value,
+                        form.cleaned_data["similarity"],
+                        form.cleaned_data["mt_similarity"]
+                    ])
+
+                    res = cursor.fetchall()
+
+                finally:
+                    cursor.close()
 
             # Update current unit instance's attributes
             # important to set these attributes after saving Submission
