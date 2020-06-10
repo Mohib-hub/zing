@@ -605,7 +605,7 @@ def submit(request, unit):
                     current_time = current_time + datetime.timedelta(seconds=1)
                     current_time = current_time.replace(microsecond=0)
 
-                sub = Submission(
+                Submission(
                     creation_time=current_time,
                     translation_project=translation_project,
                     submitter=request.user,
@@ -621,21 +621,24 @@ def submit(request, unit):
 
                 cursor = connection.cursor()
                 try:
-                    result = cursor.callproc('insert_unique_submission', [
-                        current_time.strftime("%Y-%m-%d %H:%M:%S"),
-                        field,
-                        request.user.id,
-                        SubmissionTypes.NORMAL,
-                        unit.id,
-                        unit.store.id,
-                        translation_project.id,
-                        old_value,
-                        new_value,
-                        form.cleaned_data["similarity"],
-                        form.cleaned_data["mt_similarity"]
-                    ])
+                    cursor.callproc(
+                        "insert_unique_submission",
+                        [
+                            current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                            field,
+                            request.user.id,
+                            SubmissionTypes.NORMAL,
+                            unit.id,
+                            unit.store.id,
+                            translation_project.id,
+                            old_value,
+                            new_value,
+                            form.cleaned_data["similarity"],
+                            form.cleaned_data["mt_similarity"],
+                        ],
+                    )
 
-                    res = cursor.fetchall()
+                    cursor.fetchall()
 
                 finally:
                     cursor.close()
