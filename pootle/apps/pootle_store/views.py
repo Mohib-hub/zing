@@ -8,12 +8,14 @@
 # AUTHORS file for copyright and authorship information.
 
 import copy
+import datetime
 from functools import lru_cache
 
 from translate.lang import data
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import connection
 from django.http import Http404, QueryDict
 from django.shortcuts import redirect
 from django.template import loader
@@ -50,8 +52,6 @@ from .unit.results import CtxRowResults, ViewRowResults
 from .unit.search import DBSearchBackend
 from .unit.timeline import Timeline
 from .util import find_altsrcs
-from django.db import connection
-import datetime
 
 
 # The amount of TM results that will be provided
