@@ -116,7 +116,7 @@ def pytest_addoption(parser):
 @pytest.fixture
 def should_generate_snapshots(pytestconfig):
     """Indicates whether snapshots have been instructed to be generated."""
-    return True
+    return bool(pytestconfig.getoption("generate_snapshots"))
 
 
 def pytest_collection_modifyitems(items, config):

@@ -52,8 +52,6 @@ lint-css:
 	cd ${JS_DIR} \
 	&& npm run stylelint
 
-reformat: 
-	black .
 
 test-js:
 	cd ${JS_DIR} \
