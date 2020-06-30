@@ -8,14 +8,12 @@
 # AUTHORS file for copyright and authorship information.
 
 import copy
-import datetime
 from functools import lru_cache
 
 from translate.lang import data
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db import connection
 from django.http import Http404, QueryDict
 from django.shortcuts import redirect
 from django.template import loader
@@ -600,12 +598,7 @@ def submit(request, unit):
             for field, old_value, new_value in form.updated_fields:
                 if field == SubmissionFields.TARGET and suggestion:
                     old_value = str(suggestion.target_f)
-
-                if current_time.microsecond > 0:
-                    current_time = current_time + datetime.timedelta(seconds=1)
-                    current_time = current_time.replace(microsecond=0)
-
-                Submission(
+                sub = Submission(
                     creation_time=current_time,
                     translation_project=translation_project,
                     submitter=request.user,
@@ -618,30 +611,7 @@ def submit(request, unit):
                     similarity=form.cleaned_data["similarity"],
                     mt_similarity=form.cleaned_data["mt_similarity"],
                 )
-
-                cursor = connection.cursor()
-                try:
-                    cursor.callproc(
-                        "insert_unique_submission",
-                        [
-                            current_time.strftime("%Y-%m-%d %H:%M:%S"),
-                            field,
-                            request.user.id,
-                            SubmissionTypes.NORMAL,
-                            unit.id,
-                            unit.store.id,
-                            translation_project.id,
-                            old_value,
-                            new_value,
-                            form.cleaned_data["similarity"],
-                            form.cleaned_data["mt_similarity"],
-                        ],
-                    )
-
-                    cursor.fetchall()
-
-                finally:
-                    cursor.close()
+                sub.save()
 
             # Update current unit instance's attributes
             # important to set these attributes after saving Submission
