@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("pootle_store", "0005_auto_20200124_0617"),
+        ("pootle_statistics", "0005_auto_20200124_0617"),
     ]
 
     operations = [
@@ -25,7 +25,8 @@ class Migration(migrations.Migration):
                 old_value longtext,
                 new_value longtext,
                 similarity double,
-                mt_similarity double)
+                mt_similarity double,
+                OUT subId INT(11))
 
                 BEGIN
                     DECLARE total_rows INT DEFAULT 0;
@@ -54,6 +55,7 @@ class Migration(migrations.Migration):
                             VALUES (creation_time, field_arg, submitter_id,
                             type_arg,unit_id, store_id, translation_project_id,
                             old_value, new_value, similarity, mt_similarity);
+                        SET subId = LAST_INSERT_ID();
                     END IF;
                 END
                 """
